@@ -398,6 +398,21 @@ else{
 
         return irMala;
     }
+    boolean[] atrastOtrasKartasEkstremus(boolean[] pirmasKEkst) {
+        for (int a = 0; a < pirmasKEkst.length - 641; ++a) {
+            if (pirmasKEkst[a] == false && pirmasKEkst[a + 1] == true)
+                pirmasKEkst[a] = true;
+            else {
+                if (pirmasKEkst[a] == false && pirmasKEkst[a + 640] == true)
+                    pirmasKEkst[a] = true;
+                else
+                    pirmasKEkst[a] = false;
+
+            }
+
+        }
+        return pirmasKEkst;
+    }
 //Attels apakssklase
  class HorizontalaLinija {
     int sakumaX;

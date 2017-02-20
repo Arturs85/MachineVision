@@ -2,11 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item android:id="@+id/planeExtractionMenuItem"
-            android:title="Plane Extraction" />
+            android:title="Flor Plane Extraction" />
         <item android:id="@+id/ekstremMenuItemi"
             android:title="Ekstrēmi" />
         <item android:id="@+id/ekstremi2kartaMenuItem"
             android:title="Otrie Ekstrēmi" />
+        <item android:id="@+id/ekstremiLoResMenuItem"
+            android:title="Ekstrēmi LoRes" />
+        <item android:id="@+id/colorExtractionMenuItem"
+            android:title="Color Extraction" />
+
     </group>
 
 </menu>

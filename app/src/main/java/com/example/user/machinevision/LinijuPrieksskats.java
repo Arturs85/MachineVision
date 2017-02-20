@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.View;
 
 /**
@@ -46,27 +47,30 @@ public void mSetBitmap(Bitmap bitmap){
     @Override
     protected void onDraw(Canvas canvas) {
        // Rect rect = new Rect(0,0,479,400);
-        synchronized (bitmap) {
+    // synchronized (bitmap) {
             canvas.scale(1.25f,1f);
+        //synchronized (bitmap) {
+            if (uzzimetsPirmais && bitmapOtrs != null) {
+                //synchronized (bitmapOtrs) {
+                    canvas.drawBitmap(bitmapOtrs, 0, 0, paint);
+                    Log.d("linPr", " otrais ");
+                //}
+                uzzimetsPirmais = false;
+            } else {
 
-           if(uzzimetsPirmais && bitmapOtrs!= null) {
+                if (bitmap != null) {
+                    // canvas.drawColor(Color.WHITE);
+                    // canvas.drawColor(Color.TRANSPARENT);//, Mode.CLEAR);
+                    //synchronized (bitmap) {
+                        canvas.drawBitmap(bitmap, 0, 0, paint);
+                        //canvas.drawBitmap(bitmapOtrs,null,rect,paint);
+                      //  Log.d("linPr", " pirmais ");
+                        uzzimetsPirmais = true;
+                    //}
+                }
 
-               canvas.drawBitmap(bitmapOtrs, 0, 0, paint);
-           uzzimetsPirmais = false;
-           }
-
-            else{
-            if(bitmap!= null) {
-                // canvas.drawColor(Color.WHITE);
-               // canvas.drawColor(Color.TRANSPARENT);//, Mode.CLEAR);
-                canvas.drawBitmap(bitmap, 0, 0, paint);
-                //canvas.drawBitmap(bitmapOtrs,null,rect,paint);
-
-                uzzimetsPirmais = true;
             }
-
-           }
-                super.onDraw(canvas);
+            super.onDraw(canvas);
           /*
 
 
@@ -94,7 +98,7 @@ public void mSetBitmap(Bitmap bitmap){
             } else
                 canvas.drawText("null", 55, 55, paint);
 */
-        }
+       // }
        // invalidate();
     }
     public Paint yuvToRGB(int y, int u, int v) {

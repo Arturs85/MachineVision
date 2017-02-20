@@ -3,6 +3,7 @@ package com.example.user.machinevision;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -56,15 +57,21 @@ public class AndroidCameraExample extends AppCompatActivity {
     private TextView tekstaLauks;
     private int previewSizeHeight = 300;
     private Intent intent;
-    byte[] data1;
+    byte[] dataCb;
     boolean izsauktsSaglabat = false;
     boolean ieslegtsEkstremuSkats = true;
     LinijuPrieksskats skats;
-    int spilgtumsDelta = 25;
-    byte[] callbackBuffer;
+    public int spilgtumsDelta = 25;
+    byte[] callbackBuffer1;
     byte[] callbackBuffer2;
+    boolean updateFromCb;
     Handler handler;
-    BitmapThread bitmapThread;
+   /// BitmapThread bitmapThread;
+    EkstremuSkatsLoRes ekstremuSkatsLoResThread;
+    EkstremuSkatsHiRes ekstremuSkatsHiResThread;
+    EkstremuSkatsHiResOtraKarta ekstremuSkatsHiResOtraKartaThread;
+    PlaneExtractionByKrasuHistogramma planeExtractionByKrasuHistogrammaThread;
+   ColorExtractionView colorExtractionViewThread;
     // private final RawPictureCallback mRawPictureCallback = new RawPictureCallback();
 
 
@@ -81,11 +88,23 @@ public class AndroidCameraExample extends AppCompatActivity {
 
         myContext = this;
         handler = new HandlerExtension(this);
-        bitmapThread = new BitmapThread();
-        bitmapThread.isRunning = true;
-        bitmapThread.start();
+       // bitmapThread = new BitmapThread();
+      //  bitmapThread.isRunning = true;
+       // bitmapThread.start();
 
         initialize();
+
+
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        Log.d("MVision", "onDestroy");
+       // bitmapThread.isRunning = false;
+       // bitmapThread.interrupt();
+        stopThreads();
+        super.onDestroy();
 
 
     }
@@ -166,10 +185,11 @@ public class AndroidCameraExample extends AppCompatActivity {
             buferaIzmers = buferaIzmers / 2 + buferaIzmers;
             Toast toast = Toast.makeText(myContext, Integer.toString(previewSizeWidth) + "x" + Integer.toString(previewSizeHeight), Toast.LENGTH_LONG);
             toast.show();
-            callbackBuffer = new byte[buferaIzmers];
+            callbackBuffer1 = new byte[buferaIzmers];
             callbackBuffer2 = new byte[buferaIzmers];
             mCamera.setPreviewCallbackWithBuffer(getPrevCallback());
-            mCamera.addCallbackBuffer(callbackBuffer);
+            mCamera.addCallbackBuffer(callbackBuffer1);
+            mCamera.addCallbackBuffer(callbackBuffer2);
 
         }
     }
@@ -190,7 +210,7 @@ public class AndroidCameraExample extends AppCompatActivity {
         cameraPreview.addView(mPreview);
         // cameraPreview.addView(skats);
         cameraPreview2.addView(skats);
-       // skats.setRotation(90);
+        // skats.setRotation(90);
         //skats.setTranslationX(480);
         //cameraPreview2.setTranslationZ(-1);
         //
@@ -222,7 +242,7 @@ public class AndroidCameraExample extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 tekstaLauks.setText(Integer.toString(progress));
-                bitmapThread.attels.vSlieksnis = progress;
+spilgtumsDelta = progress;
             }
 
             @Override
@@ -235,8 +255,6 @@ public class AndroidCameraExample extends AppCompatActivity {
 
             }
         });
-        //intent = new Intent(this, LinijuMekletajs.class);
-        //intent.putExtra("vards",data1);
 
     }
 
@@ -289,9 +307,12 @@ public class AndroidCameraExample extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         //when on Pause, release camera in order to be used from other applications
+       stopThreads();
         releaseCamera();
-        bitmapThread.isRunning = false;
-        bitmapThread.interrupt();
+
+       // bitmapThread.isRunning = false;
+       // bitmapThread.interrupt();
+
     }
 
     private boolean hasCamera(Context context) {
@@ -318,92 +339,25 @@ public class AndroidCameraExample extends AppCompatActivity {
             public void onPreviewFrame(byte[] data, Camera camera) {
                 // Log.d("MVision", " onPreview called ");
 
-                // Camera.Parameters parameters = camera.getParameters();
-                // int imageFormat = parameters.getPreviewFormat();
-                // if (imageFormat == ImageFormat.NV21) {
-                // Rect rect = new Rect(0, 0, PreviewSizeWidth, PreviewSizeHeight);
-                //YuvImage img = new YuvImage(data, ImageFormat.NV21, PreviewSizeWidth, PreviewSizeHeight, null);
-
-
-                mCamera.addCallbackBuffer(callbackBuffer);
-                callbackBuffer2 = data;
-
-                //intent.putExtra("vards", data);
-                //skats = new LinijuPrieksskats(myContext);
-                bitmapThread.setDati(callbackBuffer2);
-
-                bitmapThread.spilgtumsDelta = spilgtumsDelta;
-                //skats.refreshDrawableState();
-
-                //startActivity(intent);
-                // LinijuMekletajs mekletajs = new LinijuMekletajs();
-                // int ekstremuSkaits = mekletajs.skaitiitEkstremus(data);
-                // tekstaLauks.setText("Nevienmērība "+ekstremuSkaits);
-
-                // Toast toast = Toast.makeText(myContext, "Nevienmerība "+ ekstremuSkaits, Toast.LENGTH_SHORT);
-                // toast.show();
-/*
-                 OutputStream outStream = null;
-                // File file = new File(String.valueOf(getOutputMediaFile()));
-                 try {
-                     outStream = new FileOutputStream(getOutputMediaFile());
-                    //img.compressToJpeg(rect, 100, outStream);
-                    outStream.write(data);
-                     outStream.flush();
-                     outStream.close();
-
-                     Toast toast = Toast.makeText(myContext, "Picture saved: ", Toast.LENGTH_LONG);
-                     toast.show();
-
-                 } catch (FileNotFoundException e) {
-                     e.printStackTrace();
-                 } catch (IOException e) {
-                     e.printStackTrace();
-                 }
-*/
-                //  }
-                //  mPreview.refreshCamera(mCamera);
+                //   mCamera.addCallbackBuffer(callbackBuffer1);
+                //  callbackBuffer2 = data;
+              //  bitmapThread.setDati(data);
+                //if (ekstremuSkatsLoResThread != null)
+                //if (ekstremuSkatsLoResThread.isRunning)
+                //  ekstremuSkatsLoResThread.setDati(callbackBuffer2);
+                dataCb = data; //globāla norāde uz pieejamo preview datu masīvu
+                updateFromCb = true;
 
             }
         };
         return previewCallback;
     }
-/*
-    private Camera.PictureCallback getPictureCallback() {
-        Camera.PictureCallback picture = new Camera.PictureCallback() {
 
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera) {
-                //make a new picture file
-                File pictureFile = getOutputMediaFile();
-
-                if (pictureFile == null) {
-                    return;
-                }
-                try {
-                    //write the file
-                    FileOutputStream fos = new FileOutputStream(pictureFile);
-                    fos.write(data);
-                    fos.close();
-                    Toast toast = Toast.makeText(myContext, "Picture saved: " + pictureFile.getName(), Toast.LENGTH_LONG);
-                    toast.show();
-
-                } catch (FileNotFoundException e) {
-                } catch (IOException e) {
-                }
-
-                //refresh camera to continue preview
-                mPreview.refreshCamera(mCamera);
-            }
-        };
-        return picture;
-    }
-*/
 
     View.OnClickListener plusListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            mCamera.autoFocus(mAutoFocusCallback);
+            // mCamera.autoFocus(mAutoFocusCallback);
             if (spilgtumsDelta <= 49 && spilgtumsDelta >= 1)
                 spilgtumsDelta++;
             tekstaLauks.setText(Integer.toString(spilgtumsDelta));
@@ -415,12 +369,12 @@ public class AndroidCameraExample extends AppCompatActivity {
         public void onClick(View v) {
             if (ieslegtsEkstremuSkats) {
                 ieslegtsEkstremuSkats = false;
-                bitmapThread.ieslegtsEkstremuSkats = false;
+               // bitmapThread.ieslegtsEkstremuSkats = false;
                 buttonMainit.setText("<");
 
             } else {
                 ieslegtsEkstremuSkats = true;
-                bitmapThread.ieslegtsEkstremuSkats = true;
+               // bitmapThread.ieslegtsEkstremuSkats = true;
                 buttonMainit.setText(">");
             }
         }
@@ -442,14 +396,14 @@ public class AndroidCameraExample extends AppCompatActivity {
             //  mCamera.setParameters(mCameraParam);
             //   Bitmap plainImage = BitmapFactory.decodeByteArray(rawPlainImage, 0, rawPlainImage.length);
             if (izsauktsSaglabat) {  // sāk saglabāt tikai pec otrās pogas nospiešanas reizes
-                synchronized (callbackBuffer) {
-                    SaglabatFailaThread saglabatFailaThread = new SaglabatFailaThread(callbackBuffer, myContext);
+                synchronized (callbackBuffer1) {
+                    SaglabatFailaThread saglabatFailaThread = new SaglabatFailaThread(callbackBuffer1, myContext);
                     saglabatFailaThread.start();
                     Log.d("MVision", " ThreadSaglabāt started ");
                 }
                 izsauktsSaglabat = false;
             }
-            mCamera.addCallbackBuffer(callbackBuffer);
+            mCamera.addCallbackBuffer(callbackBuffer1);
 
             mCamera.setPreviewCallbackWithBuffer(getPrevCallback());//setOneShotPreviewCallback(getPrevCallback());//
             //mCamera.takePicture(null,null ,mPicture );
@@ -510,31 +464,66 @@ public class AndroidCameraExample extends AppCompatActivity {
             mCamera = null;
         }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
         return true;
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.ekstremi2kartaMenuItem:
-               bitmapThread.ieslegtsEkstremuSkats=true;//newGame();
+                stopThreads();
+                ekstremuSkatsHiResOtraKartaThread = new EkstremuSkatsHiResOtraKarta();
+                ekstremuSkatsHiResOtraKartaThread.start();
+
                 return true;
             case R.id.ekstremMenuItemi:
-                //showHelp();
+                stopThreads();
+                ekstremuSkatsHiResThread = new EkstremuSkatsHiRes();
+                //  ekstremuSkatsHiResThread.isRunning = true;
+                ekstremuSkatsHiResThread.start();
+
+                return true;
+            case R.id.ekstremiLoResMenuItem:
+                stopThreads();
+                ekstremuSkatsLoResThread = new EkstremuSkatsLoRes();
+                ekstremuSkatsLoResThread.start();
+
                 return true;
             case R.id.planeExtractionMenuItem:
-                bitmapThread.ieslegtsEkstremuSkats = false;
-                //showHelp();
+                stopThreads();
+                planeExtractionByKrasuHistogrammaThread = new PlaneExtractionByKrasuHistogramma();
+                planeExtractionByKrasuHistogrammaThread.start();
                 return true;
+            case R.id.colorExtractionMenuItem:
+                stopThreads();
+                colorExtractionViewThread = new ColorExtractionView();
+                colorExtractionViewThread.start();
 
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    private void stopThreads() {
+        if (ekstremuSkatsHiResThread != null)
+            ekstremuSkatsHiResThread.isRunning = false;
+        if (ekstremuSkatsLoResThread != null)
+            ekstremuSkatsLoResThread.isRunning = false;
+        if (ekstremuSkatsHiResOtraKartaThread != null)
+            ekstremuSkatsHiResOtraKartaThread.isRunning = false;
+        if (planeExtractionByKrasuHistogrammaThread != null)
+            planeExtractionByKrasuHistogrammaThread.isRunning = false;
+        if(colorExtractionViewThread!=null)
+            colorExtractionViewThread.isRunning=false;
+    }
+
     private static class HandlerExtension extends Handler {
 
         private final WeakReference<AndroidCameraExample> currentActivity;
@@ -558,6 +547,177 @@ public class AndroidCameraExample extends AppCompatActivity {
         }
     }
 
+    class EkstremuSkatsLoRes extends Thread {
+        byte[] dati1;
+
+        Paint paint = new Paint();
+        Paint linijuKrasa = new Paint();
+        final Bitmap bitmap = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        boolean isRunning = true;
+
+        Attels attels = new Attels();
+        boolean[][] ekstremi160x120 = new boolean[160][120];
+
+
+        void zimetBitmap(byte[] dati) {
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+            attels.spilgtumsDelta = spilgtumsDelta;
+            ekstremi160x120 = attels.atrastEkstremus160x120(dati, ekstremi160x120);
+
+            for (int x = 0; x <= 159; ++x) { // 640x384
+                for (int y = 0; y <= 119; ++y) {
+                    if (ekstremi160x120[x][y] == true)
+                        canvas.drawRect(x * 4, y * 4, x * 4 + 4, y * 4 + 4, linijuKrasa);
+
+                }
+            }
+            mCamera.addCallbackBuffer(dati);
+        }
+
+        public void run() {
+            linijuKrasa.setColor(Color.RED);
+            paint.setAlpha(0);
+
+            try {
+                while (isRunning) {
+
+                    if (updateFromCb) {
+                        dati1 = dataCb;
+                        synchronized (bitmap) {
+                            if (dati1 != null) {
+                                zimetBitmap(dati1);
+                            } else
+                                canvas.drawText("null", 155, 55, paint);
+
+                            updateFromCb = false;
+                            Message msg = new Message();
+                            msg.obj = bitmap;
+                            handler.sendMessage(msg);
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+// just end the background thread
+            }
+        }
+
+    }
+
+    class EkstremuSkatsHiRes extends EkstremuSkatsLoRes {
+        boolean[] ekstremi = new boolean[307200];
+
+
+        @Override
+        void zimetBitmap(byte[] dati) {
+            int kolonna = 1;
+            int rinda = 1;
+
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            attels.spilgtumsDelta = spilgtumsDelta;
+            ekstremi = attels.atrastEkstremus(dati, ekstremi);
+
+            for (int a = 0; a < ekstremi.length - 1; a = a + 1) { //640x384
+                if (ekstremi[a]) {
+                    canvas.drawPoint(kolonna, rinda, linijuKrasa);
+                }
+                kolonna = kolonna + 1;
+                if (kolonna >= 641) {
+                    rinda = rinda + 1;
+                    kolonna = 1;
+                }
+            }
+
+            mCamera.addCallbackBuffer(dati);
+        }
+
+
+    }
+
+    class EkstremuSkatsHiResOtraKarta extends EkstremuSkatsLoRes {
+        boolean[] ekstremi = new boolean[307200];
+        boolean[] ekstremi2 = new boolean[307200];
+
+
+        @Override
+        void zimetBitmap(byte[] dati) {
+            int kolonna = 1;
+            int rinda = 1;
+
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            attels.spilgtumsDelta = spilgtumsDelta;
+            ekstremi2 = attels.atrastOtrasKartasEkstremus(attels.atrastEkstremus(dati, ekstremi));
+
+            for (int a = 0; a < ekstremi.length - 1; a = a + 1) { //640x384
+                if (ekstremi[a]) {
+                    canvas.drawPoint(kolonna, rinda, linijuKrasa);
+                }
+                kolonna = kolonna + 1;
+                if (kolonna >= 641) {
+                    rinda = rinda + 1;
+                    kolonna = 1;
+                }
+            }
+
+            mCamera.addCallbackBuffer(dati);
+        }
+
+
+    }
+
+    class PlaneExtractionByKrasuHistogramma extends EkstremuSkatsLoRes {
+        int[] krasuHist = new int[362];
+
+        @Override
+        void zimetBitmap(byte[] dati) {
+            int kolonna = 1;
+            int rinda = 1;
+
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            attels.vSlieksnis = spilgtumsDelta;
+            krasuHist = attels.atrastKrasuHistogrammu(krasuHist, dati);
+
+            canvas = attels.atrastVirsmuLoRes(canvas, paint, krasuHist, dati);
+            for (int i = 0; i < krasuHist.length; i++) {
+                int j = krasuHist[i];
+                float[] hsv = {(float) i, 0.9f, 0.9f};
+                paint.setColor(Color.HSVToColor(hsv));
+                canvas.drawLine(1 * i + 5, 5, 1 * i + 5, j, paint);
+
+            }
+            mCamera.addCallbackBuffer(dati);
+        }
+
+
+    }
+    class ColorExtractionView extends EkstremuSkatsLoRes {
+        boolean[][] krasuLaukums = new boolean[640][480];
+
+
+        @Override
+        void zimetBitmap(byte[] dati) {
+            int kolonna = 1;
+            int rinda = 1;
+
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+            attels.vSlieksnis = spilgtumsDelta;
+
+            krasuLaukums= attels.atrastKrasuLaukumus(dati, krasuLaukums); // krasu laukumu tests
+            for (int x = 0; x <= 639; x = x +1) { // 640x384
+                for (int y = 0; y <= 479; y++) {
+                    if(krasuLaukums[x][y] == true)
+                        canvas.drawPoint(x, y,linijuKrasa );
+                }
+            }
+
+            mCamera.addCallbackBuffer(dati);
+        }
+
+
+    }
+
+
     public class BitmapThread extends Thread {
 
         byte[] dati;
@@ -571,7 +731,7 @@ public class AndroidCameraExample extends AppCompatActivity {
         boolean ieslegtsEkstremuSkats = true;
         int platums = 0;
         boolean uzzimetsPirmais = true;
-        int spilgtumsDelta = 10;
+        // int spilgtumsDelta = 10;
         boolean updated = true;
         Attels attels = new Attels();
         boolean[] ekstremi = new boolean[307200];
@@ -636,6 +796,7 @@ krasuLaukums= attels.atrastKrasuLaukumus(dati,krasuLaukums); // krasu laukumu te
 
             }
 
+            mCamera.addCallbackBuffer(dati);
 
         }
 
