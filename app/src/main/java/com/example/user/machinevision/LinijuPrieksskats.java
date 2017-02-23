@@ -48,7 +48,7 @@ public void mSetBitmap(Bitmap bitmap){
     protected void onDraw(Canvas canvas) {
        // Rect rect = new Rect(0,0,479,400);
     // synchronized (bitmap) {
-            canvas.scale(1.25f,1f);
+        // canvas.scale(1.25f,1f);
         //synchronized (bitmap) {
             if (uzzimetsPirmais && bitmapOtrs != null) {
                 //synchronized (bitmapOtrs) {

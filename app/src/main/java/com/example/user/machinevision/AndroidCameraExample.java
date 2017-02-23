@@ -3,7 +3,6 @@ package com.example.user.machinevision;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -22,8 +21,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,7 +48,7 @@ public class AndroidCameraExample extends AppCompatActivity {
     private Button capture, switchCamera, buttonPlus, buttonMinus, buttonMainit;
     private Context myContext;
     private LinearLayout cameraPreview;
-    private RelativeLayout cameraPreview2;
+    private FrameLayout cameraPreview2;
 
     private boolean cameraFront = false;
     private Camera.Parameters mCameraParam;
@@ -66,12 +65,13 @@ public class AndroidCameraExample extends AppCompatActivity {
     byte[] callbackBuffer2;
     boolean updateFromCb;
     Handler handler;
-   /// BitmapThread bitmapThread;
+    /// BitmapThread bitmapThread;
     EkstremuSkatsLoRes ekstremuSkatsLoResThread;
     EkstremuSkatsHiRes ekstremuSkatsHiResThread;
     EkstremuSkatsHiResOtraKarta ekstremuSkatsHiResOtraKartaThread;
     PlaneExtractionByKrasuHistogramma planeExtractionByKrasuHistogrammaThread;
-   ColorExtractionView colorExtractionViewThread;
+    ColorExtractionView colorExtractionViewThread;
+    // MySurface mySurface;
     // private final RawPictureCallback mRawPictureCallback = new RawPictureCallback();
 
 
@@ -88,9 +88,9 @@ public class AndroidCameraExample extends AppCompatActivity {
 
         myContext = this;
         handler = new HandlerExtension(this);
-       // bitmapThread = new BitmapThread();
-      //  bitmapThread.isRunning = true;
-       // bitmapThread.start();
+        // bitmapThread = new BitmapThread();
+        //  bitmapThread.isRunning = true;
+        // bitmapThread.start();
 
         initialize();
 
@@ -101,8 +101,8 @@ public class AndroidCameraExample extends AppCompatActivity {
     protected void onDestroy() {
 
         Log.d("MVision", "onDestroy");
-       // bitmapThread.isRunning = false;
-       // bitmapThread.interrupt();
+        // bitmapThread.isRunning = false;
+        // bitmapThread.interrupt();
         stopThreads();
         super.onDestroy();
 
@@ -187,6 +187,14 @@ public class AndroidCameraExample extends AppCompatActivity {
             toast.show();
             callbackBuffer1 = new byte[buferaIzmers];
             callbackBuffer2 = new byte[buferaIzmers];
+            //  SurfaceTexture surfaceTexture = new SurfaceTexture(9);
+            //try {
+            //  mCamera.setPreviewTexture(surfaceTexture);
+            //}catch (IOException e){
+            //  Log.e("MVision", "exception surfaceTexture");
+
+            //}
+            //mCamera.startPreview();
             mCamera.setPreviewCallbackWithBuffer(getPrevCallback());
             mCamera.addCallbackBuffer(callbackBuffer1);
             mCamera.addCallbackBuffer(callbackBuffer2);
@@ -199,8 +207,11 @@ public class AndroidCameraExample extends AppCompatActivity {
         myToolbar.setBackgroundColor(Color.TRANSPARENT);//.setAlpha(0.0f);
         setSupportActionBar(myToolbar);
         cameraPreview = (LinearLayout) findViewById(R.id.camera_preview);
-        cameraPreview2 = (RelativeLayout) findViewById(R.id.camera_preview2);
-
+        cameraPreview2 = (FrameLayout) findViewById(R.id.camera_preview2);
+//cameraPreview2.setGravity(RelativeLayout.CENTER_IN_PARENT);
+//mySurface = new MySurface(myContext);
+        // MySurfaceView mySurfacev = new MySurfaceView(myContext);
+        //
         mPreview = new CameraPreview(myContext, mCamera);
 
         skats = new LinijuPrieksskats(myContext);//MySurfaceView(myContext,data1);//
@@ -208,8 +219,9 @@ public class AndroidCameraExample extends AppCompatActivity {
         // skats.atelaDati = data1;
 
         cameraPreview.addView(mPreview);
-        // cameraPreview.addView(skats);
+
         cameraPreview2.addView(skats);
+        //cameraPreview2.addView(mySurface); //skats);
         // skats.setRotation(90);
         //skats.setTranslationX(480);
         //cameraPreview2.setTranslationZ(-1);
@@ -242,7 +254,8 @@ public class AndroidCameraExample extends AppCompatActivity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 tekstaLauks.setText(Integer.toString(progress));
-spilgtumsDelta = progress;
+                spilgtumsDelta = progress;
+                cameraPreview2.bringToFront();
             }
 
             @Override
@@ -307,11 +320,11 @@ spilgtumsDelta = progress;
     protected void onPause() {
         super.onPause();
         //when on Pause, release camera in order to be used from other applications
-       stopThreads();
+        stopThreads();
         releaseCamera();
 
-       // bitmapThread.isRunning = false;
-       // bitmapThread.interrupt();
+        // bitmapThread.isRunning = false;
+        // bitmapThread.interrupt();
 
     }
 
@@ -337,11 +350,11 @@ spilgtumsDelta = progress;
 
             @Override
             public void onPreviewFrame(byte[] data, Camera camera) {
-                // Log.d("MVision", " onPreview called ");
+                //   Log.d("MVision", " onPreview called ");
 
                 //   mCamera.addCallbackBuffer(callbackBuffer1);
                 //  callbackBuffer2 = data;
-              //  bitmapThread.setDati(data);
+                //  bitmapThread.setDati(data);
                 //if (ekstremuSkatsLoResThread != null)
                 //if (ekstremuSkatsLoResThread.isRunning)
                 //  ekstremuSkatsLoResThread.setDati(callbackBuffer2);
@@ -369,12 +382,12 @@ spilgtumsDelta = progress;
         public void onClick(View v) {
             if (ieslegtsEkstremuSkats) {
                 ieslegtsEkstremuSkats = false;
-               // bitmapThread.ieslegtsEkstremuSkats = false;
+                // bitmapThread.ieslegtsEkstremuSkats = false;
                 buttonMainit.setText("<");
 
             } else {
                 ieslegtsEkstremuSkats = true;
-               // bitmapThread.ieslegtsEkstremuSkats = true;
+                // bitmapThread.ieslegtsEkstremuSkats = true;
                 buttonMainit.setText(">");
             }
         }
@@ -520,8 +533,8 @@ spilgtumsDelta = progress;
             ekstremuSkatsHiResOtraKartaThread.isRunning = false;
         if (planeExtractionByKrasuHistogrammaThread != null)
             planeExtractionByKrasuHistogrammaThread.isRunning = false;
-        if(colorExtractionViewThread!=null)
-            colorExtractionViewThread.isRunning=false;
+        if (colorExtractionViewThread != null)
+            colorExtractionViewThread.isRunning = false;
     }
 
     private static class HandlerExtension extends Handler {
@@ -585,17 +598,22 @@ spilgtumsDelta = progress;
 
                     if (updateFromCb) {
                         dati1 = dataCb;
-                        synchronized (bitmap) {
-                            if (dati1 != null) {
-                                zimetBitmap(dati1);
-                            } else
-                                canvas.drawText("null", 155, 55, paint);
+                        // synchronized (bitmap) {
+                        // canvas = mySurface.getHolder().lockCanvas();
 
-                            updateFromCb = false;
-                            Message msg = new Message();
-                            msg.obj = bitmap;
-                            handler.sendMessage(msg);
-                        }
+                        if (dati1 != null) {
+
+                            zimetBitmap(dati1);
+                        } else
+                            canvas.drawText("null", 155, 55, linijuKrasa);
+
+                        // mySurface.getHolder().unlockCanvasAndPost(canvas);
+
+                        updateFromCb = false;
+                        Message msg = new Message();
+                        msg.obj = bitmap;
+                        handler.sendMessage(msg);
+                        // }
                     }
                 }
             } catch (Throwable t) {
@@ -691,6 +709,7 @@ spilgtumsDelta = progress;
 
 
     }
+
     class ColorExtractionView extends EkstremuSkatsLoRes {
         boolean[][] krasuLaukums = new boolean[640][480];
 
@@ -703,11 +722,11 @@ spilgtumsDelta = progress;
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
             attels.vSlieksnis = spilgtumsDelta;
 
-            krasuLaukums= attels.atrastKrasuLaukumus(dati, krasuLaukums); // krasu laukumu tests
-            for (int x = 0; x <= 639; x = x +1) { // 640x384
+            krasuLaukums = attels.atrastKrasuLaukumus(dati, krasuLaukums); // krasu laukumu tests
+            for (int x = 0; x <= 639; x = x + 1) { // 640x384
                 for (int y = 0; y <= 479; y++) {
-                    if(krasuLaukums[x][y] == true)
-                        canvas.drawPoint(x, y,linijuKrasa );
+                    if (krasuLaukums[x][y] == true)
+                        canvas.drawPoint(x, y, linijuKrasa);
                 }
             }
 
